@@ -15,7 +15,7 @@ A sophisticated, production-ready research automation system powered by Google G
 
 ## ⚡ Quick Start (30 Seconds)
 
-**Just want to run it?** See [QUICKSTART.md](QUICKSTART.md)
+
 
 ```bash
 cd "multi agent system"
@@ -31,7 +31,7 @@ python start.py
 - **Premium UI**: Dark theme with glassmorphism effects, smooth animations
 - **Production Ready**: Error handling, retry logic, rate limit management
 - **Fully Responsive**: Desktop-optimized two-column layout
-- **Easy Deployment**: Vercel, AWS, Heroku compatible
+
 
 ## 📁 Project Structure
 
@@ -394,7 +394,7 @@ MIT License - See LICENSE file for details
 
 ---
 
-**Built with ❤️ by ResearchMind Team**
+**Built with ❤️ by MOHAMMED KAIF**
 
 *Transform research with AI. No more manual searching—just instant, synthesized insights.*
 Results Display → Report + Sources + Assessment
