@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ResearchMind - Multi-Agent AI System</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        }
+
+        body {
+            background: #0a0a0a;
+            color: #ffffff;
+            overflow-x: hidden;
+        }
+
+        /* Custom color variables */
+        :root {
+            --primary-accent: #ff8c42;
+            --success-accent: #10b981;
+            --bg-dark: #0a0a0a;
+            --bg-card: #1a1a1a;
+            --border-color: #262626;
+            --text-muted: #9ca3af;
+        }
+
+        /* Glassmorphism effect */
+        .glass-card {
+            background: rgba(26, 26, 26, 0.8);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(38, 38, 38, 0.5);
+        }
+
+        /* Orange glow effect */
+        .glow-orange {
+            text-shadow: 0 0 10px rgba(255, 140, 66, 0.5);
+        }
+
+        /* Button glow */
+        .btn-glow {
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-glow::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.2);
+            transition: left 0.5s ease;
+        }
+
+        .btn-glow:hover::before {
+            left: 100%;
+        }
+
+        .btn-glow-orange {
+            box-shadow: 0 0 20px rgba(255, 140, 66, 0.6), inset 0 0 20px rgba(255, 140, 66, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .btn-glow-orange:hover {
+            box-shadow: 0 0 30px rgba(255, 140, 66, 0.8), inset 0 0 30px rgba(255, 140, 66, 0.2);
+            transform: scale(1.02);
+        }
+
+        /* Card animations */
+        @keyframes slideInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+
+        @keyframes pulse-glow {
+            0%, 100% {
+                box-shadow: inset 0 0 10px rgba(16, 185, 129, 0.3), 0 0 0 0 rgba(16, 185, 129, 0.4);
+            }
+            50% {
+                box-shadow: inset 0 0 15px rgba(16, 185, 129, 0.5), 0 0 0 5px rgba(16, 185, 129, 0.2);
+            }
+        }
+
+        .agent-card {
+            animation: slideInUp 0.6s ease-out forwards;
+            opacity: 0;
+            display: block;
+            transition: all 0.3s ease;
+        }
+
+        .agent-card.done {
+            border-left: 3px solid var(--success-accent);
+            animation: pulse-glow 2s ease-in-out infinite;
+            opacity: 1;
+            display: block;
+        }
+
+        .agent-card.done .checkmark {
+            animation: fadeIn 0.5s ease-out;
+            display: block;
+        }
+
+        /* Loading spinner */
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .spinner {
+            animation: spin 1s linear infinite;
+        }
+
+        /* Smooth transitions */
+        .fade-in-section {
+            animation: fadeIn 0.8s ease-out;
+        }
+
+        .report-container {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.8s ease-out;
+        }
+
+        .report-container.visible {
+            max-height: 2000px;
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 1024px) {
+            .dashboard {
+                flex-direction: column;
+            }
+
+            .left-column {
+                width: 100%;
+                margin-bottom: 2rem;
+            }
+
+            .right-column {
+                width: 100%;
+                position: relative;
+                min-height: auto;
+            }
+        }
+
+        /* Ensure right column always stays visible */
+        .right-column {
+            position: relative;
+            z-index: 10;
+        }
+
+        /* Premium text styles */
+        .text-gradient {
+            background: linear-gradient(135deg, #ff8c42 0%, #ff6b35 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        /* Copy button style */
+        .copy-btn {
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .copy-btn:hover {
+            color: var(--primary-accent);
+            transform: scale(1.1);
+        }
+
+        /* Error and success messages */
+        .alert {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 1rem 1.5rem;
+            border-radius: 8px;
+            animation: slideInUp 0.3s ease-out;
+            z-index: 1000;
+        }
+
+        .alert.success {
+            background: rgba(16, 185, 129, 0.2);
+            border: 1px solid rgba(16, 185, 129, 0.5);
+            color: #10b981;
+        }
+
+        .alert.error {
+            background: rgba(239, 68, 68, 0.2);
+            border: 1px solid rgba(239, 68, 68, 0.5);
+            color: #ef4444;
+        }
+    </style>
+</head>
+<body class="bg-black">
+    <!-- Header Section -->
+    <header class="border-b border-gray-800 sticky top-0 z-50 glass-card">
+        <div class="max-w-7xl mx-auto px-6 py-6">
+            <div class="text-center">
+                <p class="text-xs font-semibold tracking-widest" style="color: var(--primary-accent);">MULTI-AGENT AI SYSTEM</p>
+                <h1 class="text-5xl font-bold mt-2 glow-orange">
+                    Research<span style="color: var(--primary-accent);">Mind</span>
+                </h1>
+                <p class="text-gray-400 text-sm mt-3 max-w-2xl mx-auto">
+                    Four specialized AI agents collaborate — searching, scraping, writing, and critiquing — to deliver a polished research report on any topic.
+                </p>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="max-w-7xl mx-auto px-6 py-12">
+        <!-- Dashboard Section -->
+        <section class="dashboard flex gap-8 mb-16">
+            <!-- Left Column: Input Section -->
+            <div class="left-column flex-1">
+                <div class="glass-card rounded-xl p-8">
+                    <div class="mb-8">
+                        <label class="text-xs font-semibold tracking-widest" style="color: var(--primary-accent);">RESEARCH TOPIC</label>
+                        <h2 class="text-2xl font-bold mt-2 text-white">What would you like to research?</h2>
+                    </div>
+
+                    <!-- Input Field -->
+                    <div class="mb-6">
+                        <input 
+                            type="text" 
+                            id="query-input" 
+                            placeholder="Enter your research topic..." 
+                            class="w-full px-4 py-3 bg-black border border-gray-700 rounded-lg focus:border-orange-500 focus:outline-none text-white placeholder-gray-600 transition-colors"
+                        >
+                    </div>
+
+                    <!-- Run Button -->
+                    <button 
+                        id="run-btn" 
+                        class="w-full btn-glow btn-glow-orange bg-orange-600 hover:bg-orange-700 text-white font-semibold py-3 px-6 rounded-lg mb-6 flex items-center justify-center gap-2 transition-all"
+                    >
+                        <i class="fas fa-bolt"></i>
+                        <span>Run Research Pipeline</span>
+                    </button>
+
+                    <!-- Try These Pills -->
+                    <div class="mt-8 pt-6 border-t border-gray-800">
+                        <p class="text-xs font-semibold tracking-widest text-gray-500 mb-4">TRY THESE</p>
+                        <div class="grid grid-cols-2 gap-3">
+                            <button class="try-btn px-4 py-2 bg-gray-900 hover:bg-gray-800 border border-gray-700 rounded-full text-sm text-gray-300 transition-all cursor-pointer">
+                                LLM agents 2025
+                            </button>
+                            <button class="try-btn px-4 py-2 bg-gray-900 hover:bg-gray-800 border border-gray-700 rounded-full text-sm text-gray-300 transition-all cursor-pointer">
+                                CRISPR gene editing
+                            </button>
+                            <button class="try-btn px-4 py-2 bg-gray-900 hover:bg-gray-800 border border-gray-700 rounded-full text-sm text-gray-300 transition-all cursor-pointer">
+                                Fusion energy progress
+                            </button>
+                            <button class="try-btn px-4 py-2 bg-gray-900 hover:bg-gray-800 border border-gray-700 rounded-full text-sm text-gray-300 transition-all cursor-pointer">
+                                Quantum computing 2025
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Column: Pipeline Status -->
+            <div class="right-column flex-1">
+                <div class="mb-6">
+                    <p class="text-xs font-semibold tracking-widest" style="color: var(--primary-accent);">PIPELINE</p>
+                    <h2 class="text-2xl font-bold mt-2 text-white">Research Pipeline Status</h2>
+                </div>
+
+                <!-- Agent Cards -->
+                <div class="space-y-4" id="pipeline-container">
+                    <!-- Search Agent -->
+                    <div class="agent-card glass-card rounded-lg p-5" data-step="0" style="animation-delay: 0s;">
+                        <div class="flex items-start justify-between">
+                            <div>
+                                <div class="flex items-center gap-3 mb-1">
+                                    <span class="text-lg">01</span>
+                                    <h3 class="font-semibold text-white">Search Agent</h3>
+                                    <span class="text-xs font-medium text-gray-500">PENDING</span>
+                                </div>
+                                <p class="text-sm text-gray-400">Gathers recent web information</p>
+                            </div>
+                            <div class="checkmark hidden">
+                                <i class="fas fa-check text-green-500 text-lg"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Reader Agent -->
+                    <div class="agent-card glass-card rounded-lg p-5" data-step="1" style="animation-delay: 0.2s;">
+                        <div class="flex items-start justify-between">
+                            <div>
+                                <div class="flex items-center gap-3 mb-1">
+                                    <span class="text-lg">02</span>
+                                    <h3 class="font-semibold text-white">Reader Agent</h3>
+                                    <span class="text-xs font-medium text-gray-500">PENDING</span>
+                                </div>
+                                <p class="text-sm text-gray-400">Scrapes & extracts deep content</p>
+                            </div>
+                            <div class="checkmark hidden">
+                                <i class="fas fa-check text-green-500 text-lg"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Writer Chain -->
+                    <div class="agent-card glass-card rounded-lg p-5" data-step="2" style="animation-delay: 0.4s;">
+                        <div class="flex items-start justify-between">
+                            <div>
+                                <div class="flex items-center gap-3 mb-1">
+                                    <span class="text-lg">03</span>
+                                    <h3 class="font-semibold text-white">Writer Chain</h3>
+                                    <span class="text-xs font-medium text-gray-500">PENDING</span>
+                                </div>
+                                <p class="text-sm text-gray-400">Drafts the full research report</p>
+                            </div>
+                            <div class="checkmark hidden">
+                                <i class="fas fa-check text-green-500 text-lg"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Critic Chain -->
+                    <div class="agent-card glass-card rounded-lg p-5" data-step="3" style="animation-delay: 0.6s;">
+                        <div class="flex items-start justify-between">
+                            <div>
+                                <div class="flex items-center gap-3 mb-1">
+                                    <span class="text-lg">04</span>
+                                    <h3 class="font-semibold text-white">Critic Chain</h3>
+                                    <span class="text-xs font-medium text-gray-500">PENDING</span>
+                                </div>
+                                <p class="text-sm text-gray-400">Reviews & scores the report</p>
+                            </div>
+                            <div class="checkmark hidden">
+                                <i class="fas fa-check text-green-500 text-lg"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Results Section -->
+        <section id="results-section" class="hidden">
+            <div class="mb-8">
+                <h2 class="text-3xl font-bold text-white mb-2">Results</h2>
+                <p class="text-gray-400">Your comprehensive research report</p>
+            </div>
+
+            <div class="glass-card rounded-xl p-10 report-container" id="report-container">
+                <div class="flex items-center justify-between mb-6 pb-6 border-b border-gray-800">
+                    <div>
+                        <p class="text-xs font-semibold tracking-widest" style="color: var(--primary-accent);">FINAL RESEARCH REPORT</p>
+                        <h1 id="report-title" class="text-3xl font-bold text-white mt-2">Research Report</h1>
+                    </div>
+                    <button id="copy-btn" class="copy-btn p-3 hover:bg-gray-800 rounded-lg transition-all" title="Copy report">
+                        <i class="fas fa-copy text-gray-400 text-xl"></i>
+                    </button>
+                </div>
+
+                <div id="report-content" class="prose prose-invert max-w-none text-gray-300 space-y-4">
+                    <!-- Report content will be inserted here -->
+                </div>
+
+                <!-- Sources Section -->
+                <div class="mt-10 pt-10 border-t border-gray-800">
+                    <h3 class="text-lg font-semibold text-white mb-4">Sources</h3>
+                    <div id="sources-container" class="space-y-3">
+                        <!-- Source cards will be inserted here -->
+                    </div>
+                </div>
+
+                <!-- Feedback Section -->
+                <div class="mt-10 pt-10 border-t border-gray-800">
+                    <h3 class="text-lg font-semibold text-white mb-4">Quality Assessment</h3>
+                    <div id="feedback-container" class="glass-card rounded-lg p-5 bg-gray-900">
+                        <p id="feedback-text" class="text-gray-300"></p>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="border-t border-gray-800 mt-20 py-8 text-center text-gray-500 text-sm">
+        <p>ResearchMind © 2024 | Powered by Multi-Agent AI System</p>
+    </footer>
+
+    <!-- Alert Container -->
+    <div id="alert-container"></div>
+
+    <script src="app.js"></script>
+</body>
+</html>

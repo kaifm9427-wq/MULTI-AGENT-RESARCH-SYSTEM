@@ -1,0 +1,11 @@
+{
+  "name": "researchmind-frontend",
+  "version": "1.0.0",
+  "description": "Premium dark-themed frontend for ResearchMind multi-agent AI system",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yourusername/researchmind.git"
+  },
+  "keywords": ["ai", "research", "frontend", "dark-theme", "tailwind"]
+}

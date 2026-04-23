@@ -1,0 +1,42 @@
+# ==============================
+# CORE LLM & LANGCHAIN
+# ==============================
+langchain>=0.1.0
+langchain-core>=0.1.0
+langchain-community>=0.0.30
+langchain-google-genai>=0.0.10
+google-generativeai>=0.3.0
+
+# ==============================
+# TOOLS (YOUR PROJECT)
+# ==============================
+tavily-python>=0.3.0
+beautifulsoup4>=4.12.0
+lxml>=4.9.0
+requests>=2.31.0
+
+# ==============================
+# ASYNC + PERFORMANCE
+# ==============================
+aiohttp>=3.9.0
+httpx>=0.25.0
+tenacity>=8.2.0
+
+# ==============================
+# ENV & CONFIG
+# ==============================
+python-dotenv>=1.0.0
+pydantic>=2.5.0
+
+# ==============================
+# TOKEN + UTILS
+# ==============================
+tiktoken>=0.5.0
+rich>=13.7.0
+typing-extensions>=4.9.0
+
+# ==============================
+# OPTIONAL (API SERVER)
+# ==============================
+fastapi>=0.109.0
+uvicorn>=0.27.0
