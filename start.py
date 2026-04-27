@@ -23,22 +23,28 @@ def main():
     import uvicorn
     from server import app
     
+    # Detect if running on Hugging Face Spaces
+    is_hf_space = os.getenv("SPACE_ID") is not None
+    
+    if is_hf_space:
+        port = 7860
+        port_msg = "🚀 Running on Hugging Face Spaces (port 7860)"
+    else:
+        port = int(os.getenv("PORT", 8000))
+        port_msg = f"🚀 Running locally (port {port})"
+    
     print(f"""
 ╔════════════════════════════════════════════════════════════╗
 ║                  ResearchMind Starting...                  ║
 ╚════════════════════════════════════════════════════════════╝
 
-🚀 Server Details:
-   • URL (Local):   http://localhost:8000
-   • URL (Network): http://127.0.0.1:8000
-   • URL (All):     http://0.0.0.0:8000
+{port_msg}
    • Backend: FastAPI with Uvicorn
    • Frontend: Premium dark theme
    • Status: Starting on all interfaces...
 
 💡 Commands:
-   • Open browser: http://localhost:8000
-   • Test suite: python backend/tests/test_premium_ui.py
+   • Open browser: http://localhost:{port}
    • Stop server: Press Ctrl+C
 
 ════════════════════════════════════════════════════════════════
@@ -49,7 +55,7 @@ def main():
         uvicorn.run(
             app,
             host="0.0.0.0",  # Listen on all interfaces
-            port=8000,
+            port=port,
             log_level="info"
         )
     except KeyboardInterrupt:
