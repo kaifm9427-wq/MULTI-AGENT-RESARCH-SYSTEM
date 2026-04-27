@@ -1,8 +1,13 @@
 // Dynamic API Base - works on localhost and HF Spaces
+// HuggingFace Spaces uses the same origin for API calls
 const API_BASE = window.location.origin + '/api';
 
-console.log('[ResearchMind] Initializing app...');
+console.log('[ResearchMind] ========== INITIALIZATION ==========');
+console.log('[ResearchMind] Window location:', window.location.href);
+console.log('[ResearchMind] Origin:', window.location.origin);
 console.log('[ResearchMind] API_BASE:', API_BASE);
+console.log('[ResearchMind] Host:', window.location.host);
+console.log('[ResearchMind] Protocol:', window.location.protocol);
 
 // DOM Elements - with error handling
 let queryInput, runBtn, tryBtns, pipelineContainer, resultsSection, reportContainer, reportTitle, reportContent, sourcesContainer, feedbackText, copyBtn, alertContainer;
@@ -93,21 +98,22 @@ async function runResearch() {
     showLoading(true);
     runBtn.disabled = true;
 
+    console.log(`[ResearchMind] RUNNING RESEARCH for query: "${query}"`);
+
     try {
-        console.log('[ResearchMind] Starting research for:', query);
-        console.log('[ResearchMind] API Base URL:', API_BASE);
-        
+        console.log('[ResearchMind] 1. Preparing request...');
         const requestBody = {
             query: query,
             use_gemini: false
         };
         
-        console.log('[ResearchMind] Request payload:', requestBody);
-        
-        // Create AbortController for timeout
         const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 120000); // 120 second timeout
-        
+        const timeoutId = setTimeout(() => {
+            console.error('[ResearchMind] Request timed out!');
+            controller.abort();
+        }, 120000); // 2 minute timeout
+
+        console.log('[ResearchMind] 2. Sending fetch request to:', `${API_BASE}/run`);
         const response = await fetch(`${API_BASE}/run`, {
             method: 'POST',
             headers: {
@@ -119,89 +125,60 @@ async function runResearch() {
         });
 
         clearTimeout(timeoutId);
-
-        console.log('[ResearchMind] Response status:', response.status);
-        console.log('[ResearchMind] Response headers:', {
-            contentType: response.headers.get('content-type'),
-            cacheControl: response.headers.get('cache-control')
-        });
+        console.log('[ResearchMind] 3. Received response. Status:', response.status);
 
         if (!response.ok) {
             const errorText = await response.text();
-            console.error('[ResearchMind] HTTP Error Response:', errorText);
-            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            console.error('[ResearchMind] HTTP Error! Status:', response.status, 'Response:', errorText);
+            throw new Error(`Server returned HTTP ${response.status}`);
         }
 
-        let result;
         const contentType = response.headers.get('content-type');
-        
-        if (contentType && contentType.includes('application/json')) {
-            result = await response.json();
-        } else {
+        console.log('[ResearchMind] 4. Response content-type:', contentType);
+
+        if (!contentType || !contentType.includes('application/json')) {
             const text = await response.text();
-            console.warn('[ResearchMind] Unexpected content type:', contentType);
-            console.warn('[ResearchMind] Response text:', text.substring(0, 200));
-            try {
-                result = JSON.parse(text);
-            } catch (e) {
-                throw new Error(`Invalid JSON response: ${text.substring(0, 100)}`);
-            }
+            console.error('[ResearchMind] Invalid content type! Expected JSON, got:', contentType, 'Response text:', text.substring(0, 200));
+            throw new Error('Received non-JSON response from server.');
         }
         
-        console.log('[ResearchMind] Parsed result:', result);
+        const result = await response.json();
+        console.log('[ResearchMind] 5. Parsed JSON result successfully.');
         
-        // Validate result has required fields
-        if (!result || typeof result !== 'object') {
-            throw new Error('Invalid response format: expected an object');
+        if (!result || !result.report) {
+            console.error('[ResearchMind] Invalid JSON structure. Missing report field.', result);
+            throw new Error('Response from server is missing the report content.');
         }
-        
-        const requiredFields = ['query', 'steps', 'report', 'sources', 'feedback'];
-        const missingFields = requiredFields.filter(field => !(field in result));
-        
-        if (missingFields.length > 0) {
-            console.warn('[ResearchMind] Missing fields:', missingFields);
-        }
-        
-        // Show results section before animation
-        resultsSection.classList.remove('hidden');
-        reportContainer.classList.add('visible');
-        
+
+        console.log('[ResearchMind] 6. Displaying results...');
         displayResults(result);
         animateAgentCards();
         showAlert('✅ Research completed successfully!', 'success');
-        console.log('[ResearchMind] Research completed successfully');
+        console.log('[ResearchMind] 7. Research flow completed.');
         
     } catch (error) {
-        console.error('[ResearchMind] Full error object:', error);
-        console.error('[ResearchMind] Error message:', error.message);
-        console.error('[ResearchMind] Error name:', error.name);
-        console.error('[ResearchMind] Error stack:', error.stack);
+        console.error('[ResearchMind] --- FETCH ERROR ---');
+        console.error('[ResearchMind] Error Name:', error.name);
+        console.error('[ResearchMind] Error Message:', error.message);
         
-        let errorMsg = error.message || 'Unknown error occurred';
-        
-        // Handle specific error types
+        let errorMsg;
         if (error.name === 'AbortError') {
-            errorMsg = 'Request timed out (took more than 2 minutes). Please try a simpler query.';
-        } else if (error instanceof TypeError) {
-            if (error.message.includes('fetch')) {
-                errorMsg = 'Network error: Failed to connect to server. Check your connection.';
-            } else if (error.message.includes('Cannot read')) {
-                errorMsg = 'Frontend error: Application not properly initialized. Try refreshing the page.';
-            } else {
-                errorMsg = `Network/connection error: ${error.message}`;
-            }
+            errorMsg = 'Request timed out after 2 minutes.';
         } else if (error.message.includes('HTTP')) {
-            errorMsg = `Server error: ${error.message}. The API may be temporarily unavailable.`;
-        } else if (error.message.includes('Invalid')) {
-            errorMsg = `Data error: ${error.message}. Try a different query.`;
+            errorMsg = 'A server error occurred. The API might be down.';
+        } else if (error.message.includes('non-JSON')) {
+            errorMsg = 'The server sent an invalid response. Please try again.';
+        } else {
+            errorMsg = 'A network error occurred. Check your connection.';
         }
         
-        showAlert(`❌ ${errorMsg}`, 'error');
-        console.log('[ResearchMind] Error handled:', errorMsg);
+        showAlert(`❌ Error: ${errorMsg}`, 'error');
+        console.error('[ResearchMind] --- END FETCH ERROR ---');
         
     } finally {
         showLoading(false);
         runBtn.disabled = false;
+        console.log('[ResearchMind] 8. UI unlocked.');
     }
 }
 
@@ -222,15 +199,20 @@ function animateAgentCards() {
 
 function displayResults(result) {
     try {
+        console.log('[ResearchMind] displayResults called with:', result);
+        
         // Update report title
         reportTitle.textContent = `Research Report: ${result.query || 'Research'}`;
+        console.log('[ResearchMind] Updated title to:', reportTitle.textContent);
 
         // Display report content
         if (result.report) {
             const formatted = formatReport(result.report);
             reportContent.innerHTML = formatted;
+            console.log('[ResearchMind] Report content displayed');
         } else {
             reportContent.innerHTML = '<p>No report generated</p>';
+            console.warn('[ResearchMind] No report in result object');
         }
 
         // Display sources
@@ -258,24 +240,40 @@ function displayResults(result) {
                 `;
                 sourcesContainer.appendChild(sourceCard);
             });
+            console.log('[ResearchMind] Sources displayed:', result.sources.length);
         } else {
             sourcesContainer.innerHTML = '<p class="text-gray-400">No sources found</p>';
+            console.warn('[ResearchMind] No sources in result');
         }
 
         // Display feedback
         if (result.feedback) {
             feedbackText.textContent = result.feedback;
+            console.log('[ResearchMind] Feedback displayed');
         } else {
             feedbackText.textContent = 'No feedback available';
         }
 
-        // Show results section with animation
+        // Show results section - FORCE REMOVE HIDDEN CLASS
+        console.log('[ResearchMind] Removing hidden class from results-section');
         resultsSection.classList.remove('hidden');
-        setTimeout(() => {
-            reportContainer.classList.add('visible');
-        }, 100);
+        resultsSection.style.display = 'block';
+        resultsSection.style.visibility = 'visible';
+        resultsSection.style.opacity = '1';
+        
+        console.log('[ResearchMind] Adding visible class to report-container');
+        reportContainer.classList.add('visible');
+        reportContainer.style.display = 'block';
+        reportContainer.style.visibility = 'visible';
+        
+        console.log('[ResearchMind] Results displayed successfully');
     } catch (error) {
-        console.error('Error in displayResults:', error);
+        console.error('[ResearchMind] Error in displayResults:', error);
+        console.error('[ResearchMind] Error details:', {
+            message: error.message,
+            stack: error.stack,
+            name: error.name
+        });
         showAlert(`Error displaying results: ${error.message}`, 'error');
         reportContent.innerHTML = `<p class="text-red-500">Error: ${error.message}</p>`;
     }
