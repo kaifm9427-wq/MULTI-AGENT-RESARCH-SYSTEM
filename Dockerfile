@@ -15,12 +15,12 @@ COPY backend/requirements.txt .
 RUN pip install --no-cache-dir --upgrade pip && \
     pip install --no-cache-dir -r requirements.txt
 
-# Copy all files
+# Copy all fileș
 COPY . .
 
 # Expose port
 EXPOSE 7860
-
+̦̦
 # Environment variables
 ENV PYTHONUNBUFFERED=1
 ENV PYTHONDONTWRITEBYTECODE=1
@@ -30,5 +30,5 @@ ENV SPACE_ID=research-mind
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
     CMD curl -f http://localhost:7860/health || exit 1
 
-# Start server
-CMD ["python", "backend/server.py"]
+# Start server using start.py from project root
+CMD ["python", "start.py"]

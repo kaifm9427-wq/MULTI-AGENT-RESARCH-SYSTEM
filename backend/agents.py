@@ -1,11 +1,20 @@
+import os
+from pathlib import Path
+from dotenv import load_dotenv
+
+# Load environment variables FIRST from the .env file in the same directory
+env_path = Path(__file__).parent / ".env"
+load_dotenv(dotenv_path=env_path)
+
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.output_parsers import StrOutputParser
-import os
-from dotenv import load_dotenv
-from tools import web_search, scrape_url
 
-load_dotenv()
+try:
+    from tools import web_search, scrape_url
+except ImportError:
+    from .tools import web_search, scrape_url
+
 
 # model setup
 gemini_api_key = os.getenv("GEMINI_API_KEY")

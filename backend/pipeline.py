@@ -1,8 +1,12 @@
 import re
 import time
 
-from agents import writer_chain
-from tools import web_search, scrape_url
+try:
+    from agents import writer_chain
+    from tools import web_search, scrape_url
+except ImportError:
+    from .agents import writer_chain
+    from .tools import web_search, scrape_url
 
 
 def _extract_urls(search_text: str) -> list[str]:
