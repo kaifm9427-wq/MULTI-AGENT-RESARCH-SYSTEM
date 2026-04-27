@@ -1,11 +1,129 @@
----
-title: ResearchMind
-emoji: 🧠
-colorFrom: blue
-colorTo: indigo
-sdk: docker
-app_port: 7860
----
+# ResearchMind - Multi-Agent AI Research System
+
+A sophisticated, production-ready research automation system powered by Google Gemini and LangChain. Leverages multiple AI agents to conduct comprehensive research, synthesize findings, and provide quality feedback—all with a premium dark-themed interface.
+
+[![Live Demo on Hugging Face](https://img.shields.io/badge/🤗-Live%20Demo-blue)](https://huggingface.co/spaces/kaifyyy06/research-mind)
+
+![ResearchMind Banner](https://img.shields.io/badge/AI-Research-orange) ![Python](https://img.shields.io/badge/Python-3.9+-blue) ![FastAPI](https://img.shields.io/badge/FastAPI-Latest-green) ![Gemini](https://img.shields.io/badge/Google%20Gemini-API-red)
+
+## ⚡ Quick Start
+
+1.  **Clone the repository:**
+    ```bash
+    git clone https://github.com/kaifm9427-wq/MULTI-AGENT-RESARCH-SYSTEM.git
+    cd "MULTI-AGENT-RESARCH-SYSTEM"
+    ```
+
+2.  **Set up the environment:**
+    Create a virtual environment and install the dependencies.
+    ```bash
+    python3 -m venv .venv
+    source .venv/bin/activate
+    pip install -r backend/requirements.txt
+    ```
+
+3.  **Add your API keys:**
+    Create a `.env` file in the `backend` directory and add your `GEMINI_API_KEY` and `TAVILY_API_KEY`.
+    ```
+    GEMINI_API_KEY="your_gemini_api_key"
+    TAVILY_API_KEY="your_tavily_api_key"
+    ```
+
+4.  **Run the application:**
+    ```bash
+    python start.py
+    ```
+    Now, open your browser and go to `http://localhost:8000`.
+
+## 🚀 Key Features
+
+- **Multi-Agent Pipeline**: Search → Read → Write → Critique workflow
+- **AI-Powered Research**: Google Gemini 1.5 Flash
+- **Web Integration**: Real-time web search via Tavily API
+- **Modern UI**: Clean and responsive interface.
+- **Production Ready**: Built with FastAPI.
+
+## 📁 Project Structure
+
+```
+.
+├── Dockerfile
+├── README.md
+├── backend
+│   ├── __init__.py
+│   ├── agents.py
+│   ├── pipeline.py
+│   ├── requirements.txt
+│   ├── server.py
+│   └── tools.py
+├── frontend
+│   ├── app.js
+│   ├── index.html
+│   ├── package.json
+│   └── styles.css
+└── start.py
+```
+
+## 🛠️ Installation
+
+### Prerequisites
+- Python 3.9 or higher
+- [Google Gemini API key](https://aistudio.google.com/app/apikey)
+- [Tavily API key](https://tavily.com/)
+
+### Step 1: Clone the Repository
+```bash
+git clone https://github.com/kaifm9427-wq/MULTI-AGENT-RESARCH-SYSTEM.git
+cd MULTI-AGENT-RESARCH-SYSTEM
+```
+
+### Step 2: Set Up Python Environment
+Create and activate a virtual environment.
+```bash
+python3 -m venv .venv
+source .venv/bin/activate  # For macOS/Linux
+# .venv\Scripts\activate  # For Windows
+```
+
+### Step 3: Install Dependencies
+```bash
+pip install -r backend/requirements.txt
+```
+
+### Step 4: Configure API Keys
+Create a `.env` file in the `backend` directory.
+```bash
+touch backend/.env
+```
+Now, open `backend/.env` and add your API keys in the following format:
+```
+GEMINI_API_KEY="your_gemini_api_key"
+TAVILY_API_KEY="your_tavily_api_key"
+```
+
+### Step 5: Run the Application
+```bash
+python start.py
+```
+The application will be available at `http://localhost:8000`.
+
+## 🐳 Docker
+You can also run this project using Docker.
+
+1.  **Build the Docker image:**
+    ```bash
+    docker build -t multi-agent-research-system .
+    ```
+
+2.  **Run the Docker container:**
+    Make sure to replace the placeholder API keys with your actual keys.
+    ```bash
+    docker run -p 8000:8000 
+      -e GEMINI_API_KEY="your_gemini_api_key" 
+      -e TAVILY_API_KEY="your_tavily_api_key" 
+      multi-agent-research-system
+    ```
+The application will be available at `http://localhost:8000`.
 
 # ResearchMind - Multi-Agent AI Research System
 
@@ -394,19 +512,13 @@ MIT License - See LICENSE file for details
 
 ---
 
+## ✍️ Author
+
+Made with ❤️ by **Mohammed Kaif**
+*Galgotias University, B.TECH CSE*
+
 **Built with ❤️ by MOHAMMED KAIF**
 
 *Transform research with AI. No more manual searching—just instant, synthesized insights.*
 Results Display → Report + Sources + Assessment
-```
-
-## 🎨 UI Design
-
-- **Background**: Deep black (#0a0a0a)
-- **Primary Accent**: Orange (#ff8c42)
-- **Success Indicator**: Emerald green (#10b981)
-- **Layout**: Two-column responsive design
-- **Animations**: Smooth 60fps transitions
-
-## ⚙️ Configuration
 
