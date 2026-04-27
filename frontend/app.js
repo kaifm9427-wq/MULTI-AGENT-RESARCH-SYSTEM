@@ -1,31 +1,84 @@
 // Dynamic API Base - works on localhost and HF Spaces
 const API_BASE = window.location.origin + '/api';
 
-// DOM Elements
-const queryInput = document.getElementById('query-input');
-const runBtn = document.getElementById('run-btn');
-const tryBtns = document.querySelectorAll('.try-btn');
-const pipelineContainer = document.getElementById('pipeline-container');
-const resultsSection = document.getElementById('results-section');
-const reportContainer = document.getElementById('report-container');
-const reportTitle = document.getElementById('report-title');
-const reportContent = document.getElementById('report-content');
-const sourcesContainer = document.getElementById('sources-container');
-const feedbackText = document.getElementById('feedback-text');
-const copyBtn = document.getElementById('copy-btn');
-const alertContainer = document.getElementById('alert-container');
+console.log('[ResearchMind] Initializing app...');
+console.log('[ResearchMind] API_BASE:', API_BASE);
+
+// DOM Elements - with error handling
+let queryInput, runBtn, tryBtns, pipelineContainer, resultsSection, reportContainer, reportTitle, reportContent, sourcesContainer, feedbackText, copyBtn, alertContainer;
+
+function initializeDOMElements() {
+    try {
+        queryInput = document.getElementById('query-input');
+        runBtn = document.getElementById('run-btn');
+        tryBtns = document.querySelectorAll('.try-btn');
+        pipelineContainer = document.getElementById('pipeline-container');
+        resultsSection = document.getElementById('results-section');
+        reportContainer = document.getElementById('report-container');
+        reportTitle = document.getElementById('report-title');
+        reportContent = document.getElementById('report-content');
+        sourcesContainer = document.getElementById('sources-container');
+        feedbackText = document.getElementById('feedback-text');
+        copyBtn = document.getElementById('copy-btn');
+        alertContainer = document.getElementById('alert-container');
+        
+        // Check if all required elements exist
+        const requiredElements = {
+            queryInput, runBtn, pipelineContainer, resultsSection, reportContainer,
+            reportTitle, reportContent, sourcesContainer, feedbackText, copyBtn, alertContainer
+        };
+        
+        const missing = Object.entries(requiredElements)
+            .filter(([_, el]) => !el)
+            .map(([name, _]) => name);
+        
+        if (missing.length > 0) {
+            console.error('[ResearchMind] Missing DOM elements:', missing);
+            throw new Error(`Missing DOM elements: ${missing.join(', ')}`);
+        }
+        
+        console.log('[ResearchMind] ✅ All DOM elements found');
+        return true;
+    } catch (error) {
+        console.error('[ResearchMind] Failed to initialize DOM elements:', error);
+        return false;
+    }
+}
 
 // Event Listeners
-runBtn.addEventListener('click', runResearch);
-copyBtn.addEventListener('click', copyReportToClipboard);
+function attachEventListeners() {
+    try {
+        runBtn.addEventListener('click', runResearch);
+        copyBtn.addEventListener('click', copyReportToClipboard);
 
-// Try These button listeners
-tryBtns.forEach(btn => {
-    btn.addEventListener('click', () => {
-        queryInput.value = btn.textContent.trim();
-        runResearch();
+        // Try These button listeners
+        tryBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                queryInput.value = btn.textContent.trim();
+                runResearch();
+            });
+        });
+        
+        console.log('[ResearchMind] ✅ Event listeners attached');
+    } catch (error) {
+        console.error('[ResearchMind] Failed to attach event listeners:', error);
+    }
+}
+
+// Initialize on document ready
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => {
+        console.log('[ResearchMind] DOMContentLoaded fired');
+        if (initializeDOMElements()) {
+            attachEventListeners();
+        }
     });
-});
+} else {
+    console.log('[ResearchMind] Document already loaded');
+    if (initializeDOMElements()) {
+        attachEventListeners();
+    }
+}
 
 async function runResearch() {
     const query = queryInput.value.trim();
@@ -129,11 +182,22 @@ async function runResearch() {
         // Handle specific error types
         if (error.name === 'AbortError') {
             errorMsg = 'Request timed out (took more than 2 minutes). Please try a simpler query.';
-        } else if (error instanceof TypeError && error.message.includes('fetch')) {
-            errorMsg = 'Network error: Failed to connect to server. Please try again.';
+        } else if (error instanceof TypeError) {
+            if (error.message.includes('fetch')) {
+                errorMsg = 'Network error: Failed to connect to server. Check your connection.';
+            } else if (error.message.includes('Cannot read')) {
+                errorMsg = 'Frontend error: Application not properly initialized. Try refreshing the page.';
+            } else {
+                errorMsg = `Network/connection error: ${error.message}`;
+            }
+        } else if (error.message.includes('HTTP')) {
+            errorMsg = `Server error: ${error.message}. The API may be temporarily unavailable.`;
+        } else if (error.message.includes('Invalid')) {
+            errorMsg = `Data error: ${error.message}. Try a different query.`;
         }
         
         showAlert(`❌ ${errorMsg}`, 'error');
+        console.log('[ResearchMind] Error handled:', errorMsg);
         
     } finally {
         showLoading(false);
